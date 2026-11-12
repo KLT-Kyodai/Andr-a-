@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "andrea"
+version = "0.1.0"
+description = "Andréa — assistante personnelle intelligente inspirée de J.A.R.V.I.S., propulsée par Claude"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["anthropic>=2.8.0"]
+
+[project.optional-dependencies]
+voix = ["pyttsx3>=2.90", "SpeechRecognition>=3.10", "PyAudio>=0.2.14"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+andrea = "andrea.cli:main"
+
+[tool.setuptools]
+packages = ["andrea"]
