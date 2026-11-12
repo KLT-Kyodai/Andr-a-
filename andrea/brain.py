@@ -39,8 +39,8 @@ et cite tes sources.
 {voice_rules}"""
 
 VOICE_RULES = """
-Mode vocal actif : tes réponses seront lues à voix haute. Pas de markdown, pas de \
-listes, pas d'émojis, phrases courtes et naturelles."""
+Synthèse vocale active : tes réponses sont lues à voix haute. Écris comme on parle : \
+phrases courtes et naturelles, sans markdown, sans listes, sans émojis ni tableaux."""
 
 
 @dataclass
@@ -65,7 +65,7 @@ class Andrea:
         self.messages: list[dict[str, Any]] = []
         self.system = SYSTEM_PROMPT.format(
             user_name=self.config.user_name,
-            voice_rules=VOICE_RULES if self.config.voice else "",
+            voice_rules=VOICE_RULES if self.config.spoken else "",
         )
 
     def reset(self) -> None:

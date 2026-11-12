@@ -24,7 +24,8 @@ Andréa › C'est noté, Monsieur. Je vous préviendrai dans dix minutes — le 
 | 🌐 Recherche web avec sources | « Quelles sont les actualités du jour ? » |
 | 🖥️ État du système | « Comment va mon ordinateur ? » |
 | 🔗 Ouverture de sites | « Ouvre YouTube » |
-| 🎙️ Mode vocal avec mot d'éveil « Andréa » | « Andréa, quelle heure est-il ? » |
+| 🔊 Synthèse vocale : elle lit ses réponses à voix haute | `andrea --parle` |
+| 🎙️ Mode vocal complet avec mot d'éveil « Andréa » | « Andréa, quelle heure est-il ? » |
 
 ## Installation
 
@@ -33,8 +34,8 @@ Python 3.10 ou plus récent est requis.
 ```bash
 git clone https://github.com/KLT-Kyodai/Andr-a-.git
 cd Andr-a-
-pip install -e .            # mode texte
-pip install -e ".[voix]"    # + mode vocal (micro et synthèse vocale)
+pip install -e .            # texte + synthèse vocale
+pip install -e ".[voix]"    # + reconnaissance vocale au micro
 ```
 
 Créez une clé API sur <https://platform.claude.com> puis :
@@ -43,18 +44,41 @@ Créez une clé API sur <https://platform.claude.com> puis :
 export ANTHROPIC_API_KEY="sk-ant-..."     # Windows : set ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-> Mode vocal sous Linux : `sudo apt install espeak-ng portaudio19-dev` avant l'installation.
+> Sous Linux : `sudo apt install espeak-ng` pour la synthèse vocale, et `portaudio19-dev` pour le micro.
 
 ## Utilisation
 
 ```bash
 andrea                          # conversation au clavier
-andrea --voix                   # conversation à la voix (dites « Andréa, … »)
+andrea --parle                  # au clavier, et Andréa répond à voix haute
+andrea --voix                   # tout à la voix (dites « Andréa, … »)
 andrea --nom "Théo"             # Andréa vous appellera Théo
 andrea "Quelle heure est-il ?"  # question unique
 ```
 
-Commandes pendant la conversation : `/aide`, `/oublie` (nouvelle conversation, la mémoire reste), `/quitter`.
+Commandes pendant la conversation : `/aide`, `/parle` et `/muet` (active ou coupe la voix),
+`/oublie` (nouvelle conversation, la mémoire reste), `/quitter`.
+
+### Synthèse vocale
+
+Andréa lit ses réponses phrase par phrase, pendant qu'elles s'écrivent. Elle ne lit ni le code,
+ni les émojis, ni la mise en forme. Une nouvelle demande, `/muet` ou Ctrl+C pendant une réponse lui coupent la parole.
+
+Elle utilise la voix française de votre ordinateur, sans connexion Internet :
+
+| Système | Moteur | Voix choisie par défaut |
+|---|---|---|
+| Windows | SAPI5 (via `pyttsx3`) | voix française de Windows (Hortense en général) |
+| macOS | commande `say` | Audrey, Aurélie, Marie, Amélie ou Thomas, selon ce qui est installé |
+| Linux | `espeak-ng` | `fr+f3` (voix de synthèse assez robotique) |
+
+```bash
+andrea --liste-voix                          # voix françaises installées
+andrea --parle --choisir-voix "Thomas"       # changer de voix
+andrea --parle --vitesse 160                 # parler plus lentement (défaut : 175 mots/minute)
+```
+
+S'il n'y a aucune voix française, `andrea --liste-voix` explique comment en installer une.
 
 ## Configuration
 
@@ -64,7 +88,10 @@ Commandes pendant la conversation : `/aide`, `/oublie` (nouvelle conversation, l
 | `ANDREA_MODEL` | `claude-opus-5-5` | Modèle Claude utilisé |
 | `ANDREA_EFFORT` | `medium` | Profondeur de réflexion : `low`, `medium`, `high`, `xhigh`, `max` |
 | `ANDREA_WEB_SEARCH` | `true` | Active la recherche web |
-| `ANDREA_VOICE` | `false` | Active le mode vocal par défaut |
+| `ANDREA_SPEAK` | `false` | Andréa parle à voix haute par défaut (comme `--parle`) |
+| `ANDREA_VOICE` | `false` | Mode vocal complet par défaut (comme `--voix`) |
+| `ANDREA_TTS_VOICE` | *(auto)* | Nom de la voix à utiliser |
+| `ANDREA_TTS_RATE` | `175` | Débit de la voix, en mots par minute |
 | `ANDREA_DATA_DIR` | `~/.andrea` | Dossier de la mémoire et des notes |
 
 ## Architecture
@@ -73,7 +100,8 @@ Commandes pendant la conversation : `/aide`, `/oublie` (nouvelle conversation, l
 andrea/
 ├── brain.py   # cerveau : personnalité, boucle de conversation et d'outils (streaming)
 ├── tools.py   # outils : mémoire, notes, minuteurs, calculs, système, navigateur
-├── voice.py   # voix : synthèse (pyttsx3), reconnaissance (SpeechRecognition), mot d'éveil
+├── speak.py   # parole : synthèse vocale phrase par phrase, choix de la voix
+├── listen.py  # écoute : reconnaissance vocale (SpeechRecognition), mot d'éveil
 ├── config.py  # configuration via variables d'environnement
 └── cli.py     # interface terminal
 ```

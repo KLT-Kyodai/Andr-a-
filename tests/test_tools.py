@@ -2,7 +2,7 @@ import pytest
 
 from andrea.config import Config
 from andrea.tools import Toolbox, calculer_expression
-from andrea.voice import strip_wake_word
+from andrea.listen import strip_wake_word
 
 
 @pytest.fixture

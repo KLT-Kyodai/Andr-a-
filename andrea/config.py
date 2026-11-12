@@ -14,6 +14,13 @@ def _bool(name: str, default: bool) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "oui", "on"}
 
 
+def _int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name, default))
+    except ValueError:
+        return default
+
+
 @dataclass
 class Config:
     model: str = field(default_factory=lambda: os.environ.get("ANDREA_MODEL", "claude-opus-5-5"))
@@ -23,8 +30,17 @@ class Config:
         default_factory=lambda: Path(os.environ.get("ANDREA_DATA_DIR", Path.home() / ".andrea"))
     )
     web_search: bool = field(default_factory=lambda: _bool("ANDREA_WEB_SEARCH", True))
+    # Parole : Andréa lit ses réponses à voix haute. Voix : on lui parle aussi au micro.
+    speak: bool = field(default_factory=lambda: _bool("ANDREA_SPEAK", False))
     voice: bool = field(default_factory=lambda: _bool("ANDREA_VOICE", False))
+    tts_voice: str = field(default_factory=lambda: os.environ.get("ANDREA_TTS_VOICE", ""))
+    tts_rate: int = field(default_factory=lambda: _int("ANDREA_TTS_RATE", 175))
     max_tokens: int = 64000
+
+    @property
+    def spoken(self) -> bool:
+        """Vrai si les réponses sont lues à voix haute."""
+        return self.speak or self.voice
 
     @property
     def memory_file(self) -> Path:
