@@ -49,6 +49,11 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="andrea", description="Andréa, votre assistante IA.")
     parser.add_argument("--parle", action="store_true", help="Andréa lit ses réponses à voix haute")
     parser.add_argument("--voix", action="store_true", help="mode vocal complet : micro + voix haute")
+    parser.add_argument(
+        "--naturelle",
+        action="store_true",
+        help="voix en ligne plus naturelle (le texte des réponses est envoyé à un service Microsoft)",
+    )
     parser.add_argument("--choisir-voix", metavar="NOM", help="voix à utiliser (voir --liste-voix)")
     parser.add_argument("--vitesse", type=int, metavar="N", help="débit de la voix en mots/minute (défaut : 175)")
     parser.add_argument("--liste-voix", action="store_true", help="affiche les voix françaises installées")
@@ -84,13 +89,22 @@ class Session:
     # ----- Voix ----------------------------------------------------------- #
     def start_speaker(self) -> bool:
         try:
-            self.speaker = Speaker(self.config.tts_voice, self.config.tts_rate, on_error=self._speech_failed)
+            self.speaker = Speaker(
+                self.config.tts_voice,
+                self.config.tts_rate,
+                self.config.tts_engine,
+                on_error=self._speech_failed,
+                on_fallback=self._speech_fallback,
+            )
         except Exception as exc:
             reason = str(exc) if isinstance(exc, SpeechUnavailable) else f"{type(exc).__name__} : {exc}"
             print(f"{YELLOW}Synthèse vocale indisponible : {reason}. Je réponds par écrit.{RESET}")
             return False
         print(f"{GREY}[Synthèse vocale activée — voix : {self.speaker.voice_name}]{RESET}")
         return True
+
+    def _speech_fallback(self, exc: Exception) -> None:
+        print(f"\n{YELLOW}[Voix en ligne indisponible : {exc}. Je prends la voix de l'ordinateur.]{RESET}")
 
     def _speech_failed(self, exc: Exception) -> None:
         print(f"\n{YELLOW}[La synthèse vocale s'est arrêtée ({exc}). Je continue par écrit.]{RESET}")
@@ -223,13 +237,27 @@ class Session:
 
 
 def list_voices(config: Config) -> None:
+    online = config.tts_engine == "naturelle"
     try:
-        voices = available_voices()
-        chosen = pick_voice(voices, config.tts_voice)
+        if online:
+            from andrea.voice_online import DEFAULT_VOICE, online_voices
+
+            voices = online_voices()
+            chosen = pick_voice(voices, config.tts_voice or DEFAULT_VOICE)
+        else:
+            voices = available_voices()
+            chosen = pick_voice(voices, config.tts_voice)
     except SpeechUnavailable as exc:
         print(f"{YELLOW}Synthèse vocale indisponible : {exc}.{RESET}")
         return
     french = [v for v in voices if v.lang.startswith("fr")]
+    if online:
+        print("Voix françaises en ligne (← : voix utilisée) :")
+        for voice in french:
+            mark = "  ←" if chosen and voice.ident == chosen.ident else ""
+            print(f"  {voice.name}  ({voice.lang}, {'féminine' if voice.female else 'masculine'}){mark}")
+        print('\nPour en changer : andrea --naturelle --choisir-voix "NOM"   (ou ANDREA_TTS_VOICE=NOM)')
+        return
     if not french:
         print(
             "Aucune voix française n'est installée sur cet ordinateur.\n"
@@ -252,7 +280,9 @@ def main(argv: list[str] | None = None) -> None:
     config = Config()
     if args.nom:
         config.user_name = args.nom
-    if args.parle:
+    if args.naturelle:
+        config.tts_engine = "naturelle"
+    if args.parle or args.naturelle:
         config.speak = True
     if args.voix:
         config.voice = True

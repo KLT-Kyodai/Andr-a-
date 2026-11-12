@@ -17,6 +17,8 @@ dependencies = [
 [project.optional-dependencies]
 # Reconnaissance vocale au micro (mode --voix).
 voix = ["SpeechRecognition>=3.10", "PyAudio>=0.2.14"]
+# Voix en ligne plus naturelle (option --naturelle) : synthèse + lecture du son.
+naturelle = ["edge-tts>=7.0", "pygame-ce>=2.5"]
 dev = ["pytest>=8"]
 
 [project.scripts]

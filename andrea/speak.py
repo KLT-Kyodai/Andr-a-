@@ -1,9 +1,11 @@
 """Synthèse vocale d'Andréa : elle lit ses réponses à voix haute, phrase par phrase.
 
-La voix utilisée est celle du système, hors ligne :
+Par défaut, la voix est celle du système, hors ligne :
 - macOS   : commande `say` (rien à installer) ;
 - Linux   : `espeak-ng` (`sudo apt install espeak-ng`) ;
 - Windows : SAPI5 via `pyttsx3` (installé automatiquement avec Andréa).
+
+Une voix en ligne plus naturelle existe aussi : voir `voice_online.py`.
 """
 
 from __future__ import annotations
@@ -236,6 +238,8 @@ class Backend(Protocol):
 
     def stop(self) -> None: ...  # coupe la phrase en cours, si possible
 
+    # Facultatif : prepare(text) pour préparer une phrase à l'avance, close() pour libérer.
+
 
 class _CommandBackend:
     """Moteur piloté par une commande du système ; le texte passe par l'entrée standard."""
@@ -324,12 +328,85 @@ class Pyttsx3Backend:
         """pyttsx3 ne s'interrompt pas proprement depuis un autre fil : la phrase se termine."""
 
 
-def make_backend(voice: str = "", rate: int = DEFAULT_RATE) -> Backend:
+def make_system_backend(voice: str = "", rate: int = DEFAULT_RATE) -> Backend:
     if sys.platform == "darwin":
         return SayBackend(voice, rate)
     if sys.platform.startswith("linux"):
         return EspeakBackend(voice, rate)
     return Pyttsx3Backend(voice, rate)
+
+
+class FallbackBackend:
+    """Voix en ligne, avec repli sur la voix de l'ordinateur dès la première panne."""
+
+    def __init__(
+        self,
+        online: Backend,
+        make_fallback: Callable[[], Backend],
+        on_fallback: Callable[[Exception], None],
+    ) -> None:
+        self._online = online
+        self._make_fallback = make_fallback
+        self._on_fallback = on_fallback
+        self._fallback: Backend | None = None
+
+    @property
+    def voice_name(self) -> str:
+        return (self._fallback or self._online).voice_name
+
+    def prepare(self, text: str) -> None:
+        if self._fallback is None:
+            self._online.prepare(text)
+
+    def speak(self, text: str) -> None:
+        if self._fallback is None:
+            try:
+                self._online.speak(text)
+                return
+            except Exception as exc:
+                try:
+                    self._fallback = self._make_fallback()
+                except SpeechUnavailable as local:
+                    raise SpeechUnavailable(f"voix en ligne en panne ({exc}) et {local}") from exc
+                self._online.close()
+                self._on_fallback(exc)
+        self._fallback.speak(text)  # la phrase qui a échoué est redite par la voix locale
+
+    def stop(self) -> None:
+        (self._fallback or self._online).stop()
+
+    def close(self) -> None:
+        if self._fallback is None:
+            self._online.close()
+
+
+def make_backend(
+    voice: str = "",
+    rate: int = DEFAULT_RATE,
+    engine: str = "systeme",
+    on_fallback: Callable[[Exception], None] | None = None,
+) -> Backend:
+    """Crée le moteur vocal : « systeme » (hors ligne) ou « naturelle » (voix en ligne)."""
+    if engine != "naturelle":
+        return make_system_backend(voice, rate)
+    from andrea.voice_online import OnlineBackend  # noqa: PLC0415
+
+    on_fallback = on_fallback or (lambda exc: None)
+
+    def system() -> Backend:
+        try:
+            return make_system_backend(voice, rate)
+        except SpeechUnavailable:
+            if not voice:
+                raise
+            return make_system_backend("", rate)  # le nom désignait une voix en ligne
+
+    try:
+        online = OnlineBackend(voice, rate)
+    except SpeechUnavailable as exc:
+        on_fallback(exc)
+        return system()
+    return FallbackBackend(online, system, on_fallback)
 
 
 # --------------------------------------------------------------------------- #
@@ -346,12 +423,13 @@ class Speaker:
         self,
         voice: str = "",
         rate: int = DEFAULT_RATE,
+        engine: str = "systeme",
         backend_factory: Callable[[], Backend] | None = None,
         on_error: Callable[[Exception], None] | None = None,
+        on_fallback: Callable[[Exception], None] | None = None,
     ) -> None:
         self.enabled = True
-        self.voice_name = ""
-        self._factory = backend_factory or (lambda: make_backend(voice, rate))
+        self._factory = backend_factory or (lambda: make_backend(voice, rate, engine, on_fallback))
         self._on_error = on_error or (lambda exc: None)
         self._splitter = SentenceSplitter()
         self._queue: queue.Queue[str | None] = queue.Queue()
@@ -371,7 +449,6 @@ class Speaker:
     def _work(self) -> None:
         try:
             self._backend = self._factory()
-            self.voice_name = self._backend.voice_name
         except Exception as exc:
             self._startup_error = exc
             return
@@ -416,10 +493,17 @@ class Speaker:
 
     def _enqueue(self, sentences: list[str]) -> None:
         if self.enabled and not self._closed:
+            prepare = getattr(self._backend, "prepare", None)
             for sentence in sentences:
+                if prepare:
+                    prepare(sentence)  # voix en ligne : la synthèse démarre sans attendre
                 self._put(sentence)
 
     # ----- Interface ------------------------------------------------------ #
+    @property
+    def voice_name(self) -> str:
+        return self._backend.voice_name if self._backend else ""
+
     def feed(self, chunk: str) -> None:
         """Reçoit un morceau de réponse (streaming) ; dit chaque phrase dès qu'elle est complète."""
         self._enqueue(self._splitter.feed(chunk))
@@ -451,3 +535,6 @@ class Speaker:
             self._closed = True
             self._put(None)
         self._thread.join(timeout)
+        release = getattr(self._backend, "close", None)
+        if release:
+            release()

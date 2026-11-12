@@ -21,6 +21,10 @@ def _int(name: str, default: int) -> int:
         return default
 
 
+def _engine(value: str) -> str:
+    return "naturelle" if value.strip().lower() in {"naturelle", "en-ligne", "enligne", "online"} else "systeme"
+
+
 @dataclass
 class Config:
     model: str = field(default_factory=lambda: os.environ.get("ANDREA_MODEL", "claude-opus-5-5"))
@@ -33,6 +37,8 @@ class Config:
     # Parole : Andréa lit ses réponses à voix haute. Voix : on lui parle aussi au micro.
     speak: bool = field(default_factory=lambda: _bool("ANDREA_SPEAK", False))
     voice: bool = field(default_factory=lambda: _bool("ANDREA_VOICE", False))
+    # Moteur vocal : « systeme » (hors ligne) ou « naturelle » (voix en ligne).
+    tts_engine: str = field(default_factory=lambda: _engine(os.environ.get("ANDREA_TTS_ENGINE", "")))
     tts_voice: str = field(default_factory=lambda: os.environ.get("ANDREA_TTS_VOICE", ""))
     tts_rate: int = field(default_factory=lambda: _int("ANDREA_TTS_RATE", 175))
     max_tokens: int = 64000
