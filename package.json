@@ -1,0 +1,9 @@
+{
+  "name": "andrea-web",
+  "private": true,
+  "type": "module",
+  "description": "Tests de la version téléphone d'Andréa (dossier docs/)",
+  "scripts": {
+    "test": "node --test \"tests/web/*.test.mjs\""
+  }
+}

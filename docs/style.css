@@ -1,0 +1,515 @@
+/* Andréa — interface téléphone. Thème sombre, accent cyan façon J.A.R.V.I.S. */
+
+:root {
+  --bg: #070d18;
+  --panel: #0e1828;
+  --panel-2: #15233a;
+  --line: #22344f;
+  --text: #e6f1ff;
+  --muted: #8ea3bf;
+  --accent: #37d5ff;
+  --accent-ink: #032530;
+  --user: #12395a;
+  --danger: #ff7a7a;
+  --radius: 18px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: var(--app-height, 100dvh);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ----- En-tête ---------------------------------------------------------- */
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(env(safe-area-inset-top) + 10px) 14px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+nav {
+  display: flex;
+  gap: 4px;
+}
+
+/* Le « cœur » d'Andréa : il bat quand elle réfléchit, parle ou écoute. */
+.orb {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 14px rgb(55 213 255 / 0.45), inset 0 0 10px rgb(55 213 255 / 0.35);
+}
+
+.orb::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.85;
+}
+
+.orb[data-state="thinking"]::after {
+  animation: pulse 0.9s ease-in-out infinite;
+}
+
+.orb[data-state="speaking"] {
+  animation: glow 0.7s ease-in-out infinite alternate;
+}
+
+.orb[data-state="listening"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 16px rgb(255 122 122 / 0.6);
+}
+
+.orb[data-state="listening"]::after {
+  background: var(--danger);
+  animation: pulse 0.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(0.45);
+    opacity: 0.4;
+  }
+}
+
+@keyframes glow {
+  to {
+    box-shadow: 0 0 26px rgb(55 213 255 / 0.9), inset 0 0 14px rgb(55 213 255 / 0.6);
+    transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .orb::after {
+    animation: none !important;
+  }
+}
+
+/* ----- Boutons ---------------------------------------------------------- */
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: 0;
+  background: none;
+}
+
+button.icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--muted);
+}
+
+button.icon:active {
+  background: var(--panel-2);
+}
+
+button.icon svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+button.icon.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+button.icon.primary:disabled {
+  opacity: 0.45;
+}
+
+#btn-voice[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+#btn-voice[aria-pressed="true"] .off,
+#btn-voice[aria-pressed="false"] .on,
+#btn-send .stop,
+#app.busy #btn-send .send {
+  display: none;
+}
+
+#app.busy #btn-send .stop {
+  display: block;
+  fill: currentColor;
+}
+
+#btn-mic.listening {
+  background: var(--danger);
+  color: #2b0707;
+}
+
+/* ----- Conversation ----------------------------------------------------- */
+
+#chat {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: var(--user);
+  border-bottom-right-radius: 6px;
+  white-space: pre-wrap;
+}
+
+.bubble.andrea {
+  align-self: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 6px;
+}
+
+.bubble.dropped {
+  opacity: 0.5;
+}
+
+.bubble p,
+.bubble ul,
+.bubble ol,
+.bubble pre {
+  margin: 0 0 8px;
+}
+
+.bubble > .content > :last-child {
+  margin-bottom: 0;
+}
+
+.bubble ul,
+.bubble ol {
+  padding-left: 22px;
+}
+
+.bubble a {
+  color: var(--accent);
+}
+
+.bubble code {
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--panel-2);
+  font: 0.88em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.bubble pre {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #050a13;
+  overflow-x: auto;
+}
+
+.bubble pre code {
+  padding: 0;
+  background: none;
+}
+
+/* Ce qu'Andréa est en train de faire (outil, recherche…) */
+.activity {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.bubble.pending .activity {
+  display: flex;
+}
+
+.activity::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 0.9s ease-in-out infinite;
+}
+
+.bubble.pending .content:not(:empty) + .activity:empty {
+  display: none;
+}
+
+.link-card {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.note {
+  align-self: center;
+  max-width: 92%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.note.alert {
+  background: #2b2410;
+  color: #ffd66b;
+  border-radius: 14px;
+  font-size: 0.95rem;
+}
+
+.note.error {
+  background: #2c1215;
+  color: var(--danger);
+  border-radius: 14px;
+}
+
+/* ----- Saisie ----------------------------------------------------------- */
+
+#composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px calc(env(safe-area-inset-bottom) + 10px);
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
+textarea,
+input[type="text"],
+input[type="password"],
+select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit; /* 16 px : évite le zoom automatique sur iPhone */
+}
+
+textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 34vh;
+  border-radius: 22px;
+  resize: none;
+}
+
+textarea:focus,
+input:focus,
+select:focus,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ----- Réglages --------------------------------------------------------- */
+
+dialog {
+  width: min(94vw, 520px);
+  max-height: 92dvh;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+dialog::backdrop {
+  background: rgb(2 6 12 / 0.7);
+}
+
+#settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 18px calc(env(safe-area-inset-bottom) + 18px);
+}
+
+h2 {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+}
+
+label {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+label.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 0;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 4px;
+  padding: 8px 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.hint {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.hint a {
+  color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.actions button,
+button.secondary {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+.actions button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 650;
+}
+
+.actions button.danger {
+  border-color: transparent;
+  color: var(--danger);
+  padding: 0 4px;
+  font-size: 0.9rem;
+}
+
+.actions button {
+  white-space: nowrap;
+}
+
+button.secondary {
+  align-self: flex-start;
+  margin-top: 6px;
+}
+
+[hidden] {
+  display: none !important;
+}

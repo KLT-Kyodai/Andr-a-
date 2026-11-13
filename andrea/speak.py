@@ -27,7 +27,7 @@ DEFAULT_RATE = 175  # mots par minute
 # --------------------------------------------------------------------------- #
 _FENCE = "```"
 _CODE_NOTICE = " Le code est affiché à l'écran. "
-_LINK = re.compile(r"\[([^\]]+)\]\([^)]*\)")
+_LINK = re.compile(r"\[([^\]]+)\]\((?:[^()]|\([^()]*\))*\)")  # adresse avec parenthèses comprises
 _URL = re.compile(r"https?://[^\s)\]>]+")
 _LINE_PREFIX = re.compile(r"^\s*(?:[-•–—]\s+|#{1,6}\s+|>\s?)")  # puce, titre, citation
 _MARKDOWN = re.compile(r"\*+|_+|`+|~~+|\|")

@@ -27,8 +27,47 @@ Andréa › C'est noté, Monsieur. Je vous préviendrai dans dix minutes — le 
 | 🔊 Synthèse vocale : elle lit ses réponses à voix haute | `andrea --parle` |
 | 🗣️ Voix en ligne plus naturelle (optionnelle) | `andrea --naturelle` |
 | 🎙️ Mode vocal complet avec mot d'éveil « Andréa » | « Andréa, quelle heure est-il ? » |
+| 📱 Version téléphone (application web installable) | voir [Sur téléphone](#-sur-téléphone) |
 
-## Installation
+## 📱 Sur téléphone
+
+Andréa existe aussi en application web, dans le dossier `docs/`. Elle fonctionne dans le navigateur
+d'un téléphone Android ou d'un iPhone, sans rien installer : on lui écrit ou on lui parle, et elle
+répond à l'écran et à voix haute avec la voix du téléphone.
+
+**1. Mettre l'application en ligne (une seule fois, gratuit)** avec GitHub Pages :
+
+1. Sur GitHub, ouvrez le dépôt puis **Settings › Pages**.
+2. Sous *Build and deployment*, choisissez **Deploy from a branch**.
+3. Choisissez la branche qui contient le dossier `docs`, puis le dossier **/docs**, et **Save**.
+4. Une minute plus tard, l'application est à l'adresse `https://<votre-compte>.github.io/<nom-du-dépôt>/`
+   (pour ce dépôt : <https://klt-kyodai.github.io/Andr-a-/>).
+
+**2. L'ouvrir sur le téléphone** : allez à cette adresse, puis dans les réglages qui s'affichent
+collez votre clé API Anthropic (à créer sur <https://platform.claude.com/settings/keys>).
+
+**3. L'installer comme une application** (facultatif) :
+- Android (Chrome) : menu **⋮ › Ajouter à l'écran d'accueil**.
+- iPhone (Safari) : bouton **Partager › Sur l'écran d'accueil**.
+
+Ce qu'elle sait faire : conversation, mémoire, notes, calculs, minuteurs, recherche web, liens,
+lecture à voix haute (bouton haut-parleur) et dictée (bouton micro).
+
+À savoir :
+
+- **Votre clé API reste sur le téléphone** (stockage du navigateur) et n'est envoyée qu'à Anthropic.
+  Toute personne qui a accès à votre navigateur peut l'utiliser : fixez une limite de dépense à la clé.
+  « Tout effacer », dans les réglages, la supprime de l'appareil.
+- La mémoire, les notes et la conversation sont enregistrées sur le téléphone ; elles ne sont pas
+  partagées avec la version ordinateur.
+- Les minuteurs ne sonnent que si l'application reste ouverte à l'écran.
+- La voix est celle du téléphone. Le micro dépend du navigateur : il fonctionne dans Chrome
+  (Android) et Safari (iPhone) ; sinon, utilisez la dictée du clavier.
+- Un site ne s'ouvre pas tout seul : Andréa affiche un lien à toucher.
+
+Pour l'essayer sur un ordinateur : `python -m http.server -d docs 8000`, puis <http://localhost:8000>.
+
+## Installation (ordinateur)
 
 Python 3.10 ou plus récent est requis.
 
@@ -125,7 +164,7 @@ Pour l'utiliser à chaque fois sans retaper l'option : `ANDREA_TTS_ENGINE=nature
 ## Architecture
 
 ```
-andrea/
+andrea/              # version ordinateur (Python)
 ├── brain.py         # cerveau : personnalité, boucle de conversation et d'outils (streaming)
 ├── tools.py         # outils : mémoire, notes, minuteurs, calculs, système, navigateur
 ├── speak.py         # parole : synthèse vocale phrase par phrase, choix de la voix
@@ -133,6 +172,10 @@ andrea/
 ├── listen.py        # écoute : reconnaissance vocale (SpeechRecognition), mot d'éveil
 ├── config.py        # configuration via variables d'environnement
 └── cli.py           # interface terminal
+docs/                # version téléphone (application web, sans étape de construction)
+├── index.html, style.css, manifest.webmanifest, sw.js
+├── js/              # app.js (écran), brain.js, tools.js, speech.js, calc.js, markdown.js, store.js
+└── vendor/          # SDK officiel d'Anthropic, embarqué
 ```
 
 Ajouter une capacité : écrivez une méthode dans `Toolbox` (`andrea/tools.py`), ajoutez sa définition
@@ -145,5 +188,7 @@ conversations (compaction) et bascule automatique de modèle en cas de refus (`f
 
 ```bash
 pip install -e ".[dev]"
-pytest
+pytest                      # version ordinateur
+npm test                    # version téléphone (Node 22 ou plus, aucune dépendance)
+node tests/web/e2e.mjs      # version téléphone dans un vrai navigateur (nécessite Playwright)
 ```

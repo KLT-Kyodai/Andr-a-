@@ -26,6 +26,7 @@ from andrea.speak import (
         ("## Météo du jour", "Météo du jour"),
         ("- Acheter du café", "Acheter du café"),
         ("Voir [Le Monde](https://www.lemonde.fr/a/b?x=1).", "Voir Le Monde."),
+        ("Voir [42](https://fr.wikipedia.org/wiki/42_(nombre)).", "Voir 42."),
         ("Source : https://www.meteofrance.com/previsions/paris", "Source : meteofrance.com"),
         ("C'est noté ✅ 🚀.", "C'est noté."),
         ("Il fait -5 °C, soit 2 − 7.", "Il fait -5 °C, soit 2 − 7."),
