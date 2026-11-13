@@ -121,47 +121,48 @@ export class Toolbox {
     return `${expression} = ${calculate(expression)}`;
   }
 
-  memoriser({ cle, valeur }) {
-    const memory = this.store.get("memoire", {});
+  // Le stockage peut être local (immédiat) ou en ligne (asynchrone) : d'où les « await ».
+  async memoriser({ cle, valeur }) {
+    const memory = await this.store.get("memoire", {});
     memory[cle] = { valeur, date: new Date().toISOString() };
-    if (!this.store.set("memoire", memory)) throw new Error("le stockage de l'appareil est plein");
+    if (!(await this.store.set("memoire", memory))) throw new Error("l'enregistrement a échoué");
     return `Mémorisé : ${cle} = ${valeur}`;
   }
 
-  se_souvenir({ recherche = "" }) {
+  async se_souvenir({ recherche = "" }) {
     const query = recherche.toLowerCase().trim();
-    const lines = Object.entries(this.store.get("memoire", {}))
+    const lines = Object.entries(await this.store.get("memoire", {}))
       .filter(([key, item]) => !query || key.toLowerCase().includes(query) || String(item.valeur).toLowerCase().includes(query))
       .map(([key, item]) => `- ${key} : ${item.valeur}`);
     return lines.length ? lines.join("\n") : "Aucun souvenir correspondant.";
   }
 
-  oublier({ cle }) {
-    const memory = this.store.get("memoire", {});
+  async oublier({ cle }) {
+    const memory = await this.store.get("memoire", {});
     if (!Object.hasOwn(memory, cle)) return `Aucun souvenir nommé « ${cle} ».`;
     delete memory[cle];
-    this.store.set("memoire", memory);
+    await this.store.set("memoire", memory);
     return `Oublié : ${cle}`;
   }
 
-  ajouter_note({ texte }) {
-    const notes = this.store.get("notes", []);
+  async ajouter_note({ texte }) {
+    const notes = await this.store.get("notes", []);
     notes.push({ texte, date: new Date().toISOString().slice(0, 16) });
-    if (!this.store.set("notes", notes)) throw new Error("le stockage de l'appareil est plein");
+    if (!(await this.store.set("notes", notes))) throw new Error("l'enregistrement a échoué");
     return `Note n°${notes.length} ajoutée.`;
   }
 
-  lister_notes() {
-    const notes = this.store.get("notes", []);
+  async lister_notes() {
+    const notes = await this.store.get("notes", []);
     if (!notes.length) return "La liste de notes est vide.";
     return notes.map((note, index) => `${index + 1}. ${note.texte} (${note.date})`).join("\n");
   }
 
-  supprimer_note({ numero }) {
-    const notes = this.store.get("notes", []);
+  async supprimer_note({ numero }) {
+    const notes = await this.store.get("notes", []);
     if (numero < 1 || numero > notes.length) return `Numéro invalide (1 à ${notes.length}).`;
     const [removed] = notes.splice(numero - 1, 1);
-    this.store.set("notes", notes);
+    await this.store.set("notes", notes);
     return `Note supprimée : ${removed.texte}`;
   }
 

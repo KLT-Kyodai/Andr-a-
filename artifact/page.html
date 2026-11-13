@@ -1,0 +1,77 @@
+<title>Andréa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@600&display=swap">
+<style>
+/*STYLE*/
+</style>
+
+<div id="app">
+  <header>
+    <div class="brand">
+      <span id="orb" class="orb" data-state="idle" aria-hidden="true"></span>
+      <div>
+        <h1>Andréa</h1>
+        <p id="status" class="status">Prête</p>
+      </div>
+    </div>
+    <nav>
+      <button id="btn-voice" class="icon" type="button" aria-pressed="true" aria-label="Voix d'Andréa" title="Voix d'Andréa">
+        <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+        <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9.5l5 5M22 9.5l-5 5"/></svg>
+      </button>
+      <button id="btn-new" class="icon" type="button" aria-label="Nouvelle conversation" title="Nouvelle conversation">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button id="btn-settings" class="icon" type="button" aria-label="Réglages" title="Réglages">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <main id="chat" aria-live="polite"></main>
+
+  <form id="composer" autocomplete="off">
+    <button id="btn-mic" class="icon" type="button" aria-label="Parler à Andréa" title="Parler à Andréa" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+    </button>
+    <textarea id="input" rows="1" placeholder="Écrivez à Andréa…" enterkeyhint="send" aria-label="Votre message"></textarea>
+    <button id="btn-send" class="icon primary" type="submit" aria-label="Envoyer" title="Envoyer">
+      <svg class="send" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
+      <svg class="stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+    </button>
+  </form>
+</div>
+
+<dialog id="settings" aria-labelledby="settings-title">
+  <form id="settings-form">
+    <h2 id="settings-title">Réglages</h2>
+
+    <label for="set-name">Comment Andréa doit vous appeler</label>
+    <input id="set-name" type="text" maxlength="40" placeholder="Monsieur">
+
+    <fieldset>
+      <legend>Voix</legend>
+      <label class="row"><input id="set-speak" type="checkbox"> Lire les réponses à voix haute</label>
+      <label id="set-voice-label" for="set-voice">Voix utilisée</label>
+      <select id="set-voice"></select>
+      <label for="set-rate">Vitesse <output id="set-rate-value"></output></label>
+      <input id="set-rate" type="range" min="0.7" max="1.4" step="0.05">
+      <button id="btn-test-voice" class="secondary" type="button">Essayer la voix</button>
+      <p id="voice-hint" class="hint" hidden></p>
+    </fieldset>
+
+    <label class="row"><input id="set-deep" type="checkbox"> Réponses plus réfléchies (plus lentes)</label>
+    <p class="hint">Andréa répond grâce à votre compte Claude : chaque réponse compte dans votre utilisation.</p>
+
+    <div class="actions">
+      <button id="btn-erase" class="danger" type="button">Tout effacer</button>
+      <span class="spacer"></span>
+      <button id="btn-cancel" class="secondary" type="button">Annuler</button>
+      <button class="primary" type="submit">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+/*SCRIPT*/
+</script>

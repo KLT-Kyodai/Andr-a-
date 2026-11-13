@@ -1,0 +1,65 @@
+
+/* ----- Dans Claude : la page vit dans le cadre de l'artefact ----------------
+   Le cadre gère déjà les marges de sécurité du haut et du bas ; on garde une
+   gouttière de 16 px sur les côtés. */
+
+body {
+  position: static;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+#app {
+  height: 100%;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+header {
+  padding: 10px 0;
+}
+
+h1,
+h2 {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+#chat {
+  padding: 16px 0 8px;
+}
+
+#composer {
+  padding: 10px 0;
+}
+
+#settings-form {
+  padding-bottom: 18px;
+}
+
+/* Exemples à toucher, sous le message d'accueil */
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suggestions button {
+  min-height: 40px;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--accent);
+  text-align: left;
+}
+
+.suggestions button:active {
+  background: var(--panel-2);
+}
+
+#app.speaking:not(.typing) #btn-send .send {
+  display: none;
+}
+
+#app.speaking:not(.typing) #btn-send .stop {
+  display: block;
+  fill: currentColor;
+}

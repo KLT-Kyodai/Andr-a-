@@ -2,8 +2,12 @@
   "name": "andrea-web",
   "private": true,
   "type": "module",
-  "description": "Tests de la version téléphone d'Andréa (dossier docs/)",
+  "description": "Outils de la version téléphone d'Andréa (docs/) et de sa version dans Claude (artifact/)",
   "scripts": {
-    "test": "node --test \"tests/web/*.test.mjs\""
+    "test": "node --test \"tests/web/*.test.mjs\"",
+    "build:artifact": "node artifact/build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }

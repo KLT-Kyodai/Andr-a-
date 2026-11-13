@@ -11,6 +11,15 @@
   --accent-ink: #032530;
   --user: #12395a;
   --danger: #ff7a7a;
+  --danger-ink: #2b0707;
+  --danger-bg: #2c1215;
+  --alert: #ffd66b;
+  --alert-bg: #2b2410;
+  --code-bg: #050a13;
+  --glow: rgb(55 213 255 / 0.45);
+  --glow-strong: rgb(55 213 255 / 0.9);
+  --danger-glow: rgb(255 122 122 / 0.6);
+  --veil: rgb(2 6 12 / 0.7);
   --radius: 18px;
   color-scheme: dark;
 }
@@ -92,7 +101,7 @@ nav {
   height: 30px;
   border: 2px solid var(--accent);
   border-radius: 50%;
-  box-shadow: 0 0 14px rgb(55 213 255 / 0.45), inset 0 0 10px rgb(55 213 255 / 0.35);
+  box-shadow: 0 0 14px var(--glow), inset 0 0 10px var(--glow);
 }
 
 .orb::after {
@@ -114,7 +123,7 @@ nav {
 
 .orb[data-state="listening"] {
   border-color: var(--danger);
-  box-shadow: 0 0 16px rgb(255 122 122 / 0.6);
+  box-shadow: 0 0 16px var(--danger-glow);
 }
 
 .orb[data-state="listening"]::after {
@@ -131,7 +140,7 @@ nav {
 
 @keyframes glow {
   to {
-    box-shadow: 0 0 26px rgb(55 213 255 / 0.9), inset 0 0 14px rgb(55 213 255 / 0.6);
+    box-shadow: 0 0 26px var(--glow-strong), inset 0 0 14px var(--glow);
     transform: scale(1.08);
   }
 }
@@ -204,7 +213,7 @@ button.icon.primary:disabled {
 
 #btn-mic.listening {
   background: var(--danger);
-  color: #2b0707;
+  color: var(--danger-ink);
 }
 
 /* ----- Conversation ----------------------------------------------------- */
@@ -275,7 +284,7 @@ button.icon.primary:disabled {
 .bubble pre {
   padding: 10px 12px;
   border-radius: 10px;
-  background: #050a13;
+  background: var(--code-bg);
   overflow-x: auto;
 }
 
@@ -335,14 +344,14 @@ button.icon.primary:disabled {
 }
 
 .note.alert {
-  background: #2b2410;
-  color: #ffd66b;
+  background: var(--alert-bg);
+  color: var(--alert);
   border-radius: 14px;
   font-size: 0.95rem;
 }
 
 .note.error {
-  background: #2c1215;
+  background: var(--danger-bg);
   color: var(--danger);
   border-radius: 14px;
 }
@@ -400,7 +409,7 @@ dialog {
 }
 
 dialog::backdrop {
-  background: rgb(2 6 12 / 0.7);
+  background: var(--veil);
 }
 
 #settings-form {

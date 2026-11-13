@@ -31,9 +31,26 @@ Andréa › C'est noté, Monsieur. Je vous préviendrai dans dix minutes — le 
 
 ## 📱 Sur téléphone
 
-Andréa existe aussi en application web, dans le dossier `docs/`. Elle fonctionne dans le navigateur
-d'un téléphone Android ou d'un iPhone, sans rien installer : on lui écrit ou on lui parle, et elle
-répond à l'écran et à voix haute avec la voix du téléphone.
+Il y a deux façons d'avoir Andréa sur un téléphone.
+
+### Le plus simple : Andréa dans Claude
+
+Le dossier `artifact/` contient une version d'Andréa publiée comme page dans Claude (un
+« artefact »). Elle s'ouvre par un simple lien, dans l'application Claude ou dans un navigateur,
+**sans clé API et sans hébergement** : les réponses passent par le compte Claude de la personne qui
+l'ouvre. La mémoire et les notes sont rangées dans une base privée et suivent d'un appareil à l'autre.
+
+Ses limites : pas de recherche web ; la voix et la dictée n'existent que là où Claude les propose
+(pas dans les applications mobiles Claude à ce jour) ; chaque réponse compte dans l'utilisation de
+Claude. Pour reconstruire la page après une modification : `npm install && npm run build:artifact`,
+puis demandez à Claude Code de publier `artifact/dist/andrea.html`.
+
+### L'application web autonome
+
+Andréa existe aussi en application web indépendante, dans le dossier `docs/`. Elle fonctionne dans
+le navigateur d'un téléphone Android ou d'un iPhone, sans rien installer : on lui écrit ou on lui
+parle, et elle répond à l'écran et à voix haute avec la voix du téléphone. Elle demande une clé API
+Anthropic et sait faire des recherches sur le web.
 
 **1. Mettre l'application en ligne (une seule fois, gratuit)** avec GitHub Pages :
 
@@ -176,6 +193,10 @@ docs/                # version téléphone (application web, sans étape de cons
 ├── index.html, style.css, manifest.webmanifest, sw.js
 ├── js/              # app.js (écran), brain.js, tools.js, speech.js, calc.js, markdown.js, store.js
 └── vendor/          # SDK officiel d'Anthropic, embarqué
+artifact/            # version « dans Claude » : réutilise docs/js, sans clé API
+├── page.html, overrides.css, main.js (écran)
+├── platform.js      # réponses, voix, dictée et base fournies par Claude
+└── build.mjs        # assemble le tout en un seul fichier (artifact/dist/andrea.html)
 ```
 
 Ajouter une capacité : écrivez une méthode dans `Toolbox` (`andrea/tools.py`), ajoutez sa définition
@@ -189,6 +210,7 @@ conversations (compaction) et bascule automatique de modèle en cas de refus (`f
 ```bash
 pip install -e ".[dev]"
 pytest                      # version ordinateur
-npm test                    # version téléphone (Node 22 ou plus, aucune dépendance)
+npm test                    # versions téléphone et « dans Claude » (Node 22 ou plus)
 node tests/web/e2e.mjs      # version téléphone dans un vrai navigateur (nécessite Playwright)
+npm run build:artifact && node tests/web/artifact-e2e.mjs   # version « dans Claude », idem
 ```
